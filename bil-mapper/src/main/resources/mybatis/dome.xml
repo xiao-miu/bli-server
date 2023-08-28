@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bilibil.mapper.DemoMapper">
+<!--    resultType="java.lang.Long"查询到结果的（接收到的）类型    parameterType通过反射发现接口的数据类型（可以不写） -->
+    <select id="query" parameterType="java.lang.Long" resultType="java.util.Map" >
+        select * from t_user where id = #{id}
+    </select>
+
+</mapper>

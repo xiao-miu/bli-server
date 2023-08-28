@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bilibil.mapper.AuthRoleMenuMapper">
+<!--    resultType="java.lang.Long"查询到结果的（接收到的）类型    parameterType通过反射发现接口的数据类型（可以不写） -->
+    <resultMap id="AuthMenuResultMap" type="com.bilibil.auth.AuthRoleMenu">
+        <id column="id" property="id"/>
+        <id column="roleId" property="roleId"/>
+        <id column="menuId" property="menuId"/>
+        <!--        关联，映射内嵌的实体类AuthElementOperation    角色页面菜单关联表映射到页面元素操作表-->
+        <association property="authMenu" javaType="com.bilibil.auth.AuthMenu">
+            <!-- 关联查询 -->
+            <id column="name" property="name"/>
+            <id column="code" property="code"/>
+        </association>
+    </resultMap>
+    <!--    // 获取用户页面元素的操作权限-->
+    <!--    resultMap指定数据返回类型-->
+    <select id="getauthRoleMenus"  parameterType="java.util.Set"
+            resultMap="AuthMenuResultMap">
+        select
+        arm.* , am.name , am.code
+        from
+        t_auth_role_menu arm
+        left join t_auth_menu am on  am.id = arm.menuId
+        where
+        arm.roleId in
+        <foreach collection="roleIdSet" item="roleId" index="index"
+                 open="(" close=")" separator=",">
+            #{roleId}
+        </foreach>
+    </select>
+
+</mapper>

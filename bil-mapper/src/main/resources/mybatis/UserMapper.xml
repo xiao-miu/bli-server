@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bilibil.mapper.UserMapper">
+
+<!--    更新用户信息-->
+    <update id="updateUser" parameterType="com.bilibil.entity.User">
+        update t_user
+        set
+        <if test="phone != null and phone != '' ">
+           phone = #{phone},
+        </if>
+        <if test="email != null and email != '' ">
+            email = #{email},
+        </if>
+        <if test="password != null and password != '' ">
+            password = #{password},
+        </if>
+            updateTime = #{updateTime}
+        where
+            id = #{id}
+    </update>
+    <update id="updateUserInfo" parameterType="com.bilibil.entity.UserInfo">
+        update t_user_info
+        set
+        <if test="nick != null and nick != '' ">
+            nick = #{nick},
+        </if>
+        <if test="avatar != null">
+            avatar = #{avatar},
+        </if>
+        <if test="sign != null">
+            sign = #{sign},
+        </if>
+        <if test="birth != null and birth != '' ">
+            birth = #{birth},
+        </if>
+        <if test="gender != null  and gender != '' ">
+            gender = #{gender},
+        </if>
+        updateTime = #{updateTime}
+        where
+        userId = #{userId}
+    </update>
+
+    <!--    resultType="java.lang.Long"查询到结果的（接收到的）类型    parameterType通过反射发现接口的数据类型（可以不写,也就是输入的参数） -->
+    <select id="getUserByPhone" parameterType="java.lang.String"  resultType="com.bilibil.entity.User">
+        select  id,phone,email,password,salt,createTime,updateTime
+         from t_user
+            where phone = #{phone}
+    </select>
+    <!--     查询用户信息-->
+    <select id="getUserById" parameterType="java.lang.Long" resultType="com.bilibil.entity.User">
+        select
+            *
+#                 id,phone,email,password,salt,createTime,updateTime
+            from t_user
+            where id = #{id}
+    </select>
+    <!--     查询用户详细信息-->
+    <select id="getUserInfoByUserId" parameterType="java.lang.Long" resultType="com.bilibil.entity.UserInfo">
+        select
+                *
+#             id,userId,nick,avatar,sign,gender,birth,createTime,updateTime
+        from t_user_info
+        where userId = #{userId}
+</select>
+
+<!--    //把获取到的关注用户的信息-->
+<!--    1=1如果条件查询判断不生效，默认查询所有数据,根据用户批量查询-->
+    <select id="getUserInfoByUserIds"  resultType="com.bilibil.entity.UserInfo">
+        select *
+            from t_user_info
+        where
+            1=1
+            <if test="userIdList != null and userIdList.size > 0">
+                and userId in
+                <foreach collection="userIdList" item="userId"
+                         index="index" open="(" close=")" separator=",">
+                    #{userId}
+                </foreach>
+            </if>
+    </select>
+<!--    分页查询用户的个数（方便用户关注和取消关注操作）-->
+    <select id="pageCountUserInfos" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select COUNT(1)
+            from t_user_info
+            wehere
+                1=1
+                <if test="nick != null and nick != '' " >
+                    and nick like '%${nick}%'
+                </if>
+    </select>
+    <!--    // 分页查询出用户的数据-->
+    <select id="pageListUserInfos" parameterType="java.util.Map" resultType="com.bilibil.entity.UserInfo">
+        select *
+        from t_user_info
+        where
+        1=1
+        <if test="nick != null and nick != '' " >
+            and nick like '%${nick}%'
+        </if>
+        ORDER BY id DESC
+        LIMIT #{start}, #{limit}
+    </select>
+
+<!--    获取到刷新之后的AEStoken-->
+    <select id="getRefreshTokenDetail" parameterType="java.lang.String" resultType="com.bilibil.entity.RefreshTokenDetail">
+        select *
+        from t_refresh_token
+        where refreshToken = #{refreshToken}
+    </select>
+
+    <!--    告诉数据库，在创建完数据是要主键的-->
+    <insert id="addUser" parameterType="com.bilibil.entity.User" useGeneratedKeys="true" keyProperty="id">
+        insert into
+            t_user(
+                   phone, email, password, salt, createTime
+        ) values (
+                   #{phone},#{email},#{password},#{salt},#{createTime}
+                         )
+    </insert>
+    <insert id="addUserInfo" parameterType="com.bilibil.entity.UserInfo">
+        insert into
+            t_user_info(
+            userId,nick,avatar,sign,gender,birth,createTime
+        ) values (
+                     #{userId},#{nick},#{avatar},#{sign},#{gender},#{birth},#{createTime}
+                 )
+    </insert>
+<!--    // 删除刷新token-->
+    <delete id="deleteRefreshToken" >
+        delete from t_refresh_token
+        where refreshToken = #{refreshToken}
+    </delete>
+<!--    // 新增刷新token-->
+    <insert id="addRefreshToken">
+        insert into t_refresh_token(
+                                    userId, refreshToken, createTime
+        ) VALUES (
+                  #{userId},#{refreshToken},#{createTime}
+                         )
+    </insert>
+
+</mapper>

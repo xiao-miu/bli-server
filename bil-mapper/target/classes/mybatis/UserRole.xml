@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bilibil.mapper.UserRoleMapper">
+<!--    // 添加进数据库-->
+    <insert id="addUserRole" parameterType="com.bilibil.auth.UserRole">
+        insert into t_user_role(
+                userId,roleId,createTime
+        )values (
+                 #{userId},#{roleId},#{createTime}
+                        )
+
+    </insert>
+
+    <!--    // 通过用户ID来查询用户的角色-->
+    <select id="getUserRolesByuserId" parameterType="java.lang.Long" resultType="com.bilibil.auth.UserRole">
+        select ur.*,
+               ar.name as roleName,
+               ar.code as roleCode
+            from t_user_role ur
+            left join t_auth_role ar on ur.roleId = ar.id
+        where ur.userId = #{userId}
+    </select>
+</mapper>

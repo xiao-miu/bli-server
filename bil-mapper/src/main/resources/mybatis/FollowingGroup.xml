@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bilibil.mapper.FollowingGroupMapper">
+    <!--    新建用户关注分组-->
+    <!--    因为要返回创建好的groupID，用这个属性useGeneratedKeys-->
+    <insert id="adaddFollowingGroup" parameterType="com.bilibil.entity.FollowingGroup"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into
+            t_following_group(
+            userId,
+            `name`,
+            `type`,
+            createTime
+        )values (
+        #{userId},#{name},#{type},#{createTime}
+        )
+    </insert>
+
+    <!--    因为type是个关键字要进行变成字段-->
+    <select id="getByType" parameterType="java.lang.String" resultType="com.bilibil.entity.FollowingGroup">
+        select *
+            from t_following_group
+            where
+                `type` = #{type}
+    </select>
+<!--    根据ID查询用户关注的信息-->
+    <select id="getById" parameterType="java.lang.Long" resultType="com.bilibil.entity.FollowingGroup">
+        select *
+        from t_following_group
+        where id = #{id}
+    </select>
+<!--     进行吧获取到关注的用户进行分组-->
+<!--    userId = #{userId}用户自己创建的分组-->
+    <select id="getByUserId" parameterType="java.lang.Long" resultType="com.bilibil.entity.FollowingGroup">
+        select *
+            from t_following_group
+        where userId = #{userId} or
+              `type` in ('1','2','3')
+    </select>
+<!--    // 获取用户关注分组-->
+    <select id="getUserFollowingGroups" parameterType="java.lang.Long" resultType="com.bilibil.entity.FollowingGroup">
+        select *
+        from t_following_group
+        where userId = #{userId}
+    </select>
+</mapper>

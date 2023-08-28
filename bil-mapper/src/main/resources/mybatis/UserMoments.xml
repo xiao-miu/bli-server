@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bilibil.mapper.UserMomentsMapper">
+<!--    resultType="java.lang.Long"查询到结果的（接收到的）类型    parameterType通过反射发现接口的数据类型（可以不写） -->
+
+<!--     新建用户的动态-->
+    <insert id="addUserMoments" parameterType="com.bilibil.entity.UserMoment"
+        useGeneratedKeys="true" keyProperty="id">
+        insert into t_user_moments
+            (
+             userId,`type`,contentId,createTime
+            )values (
+                     #{userId},#{type},#{contentId},#{createTime}
+                            )
+    </insert>
+</mapper>
