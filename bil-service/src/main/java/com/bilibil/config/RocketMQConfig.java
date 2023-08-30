@@ -29,7 +29,7 @@ import java.util.List;
 public class RocketMQConfig {
     // 配置
     // 注入
-    @Value("${robinMQ.name.server.address}")
+    @Value("${rocketmq.name-server.address}")
     private String nameServerAddr;
 
     // redis 工具类
@@ -54,7 +54,7 @@ public class RocketMQConfig {
     // 消费者
     @Bean("momentsConsumer")
     public DefaultMQPushConsumer momentsConsumer() throws MQClientException {
-        DefaultMQPushConsumer pushConsumer = new DefaultMQPushConsumer();
+        DefaultMQPushConsumer pushConsumer = new DefaultMQPushConsumer(UserMomentsConstant.GROUP_MOMENTS);
         // 设置地址
         pushConsumer.setNamesrvAddr(nameServerAddr);
         // 订阅生产者，跟这个主题所有相关的分类的内容都要订阅
