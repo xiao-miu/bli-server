@@ -1,24 +1,25 @@
 package com.bilibil.util;
 
 import com.bilibil.exception.ConditionException;
+import com.github.tobato.fastdfs.domain.fdfs.FileInfo;
 import com.github.tobato.fastdfs.domain.fdfs.MetaData;
 import com.github.tobato.fastdfs.domain.fdfs.StorePath;
 import com.github.tobato.fastdfs.service.AppendFileStorageClient;
 import com.github.tobato.fastdfs.service.FastFileStorageClient;
 import io.netty.util.internal.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Date:  2023/8/29
@@ -43,7 +44,9 @@ public class FastDFSUtil {
     private static final String DEFAULT_GROUP = "group1";
     // 分片的大小 2MB
     private static final int SLICE_SIZE = 1024 * 1024 * 2;
-
+    // 接收路径
+    @Value("${fdfs.http.storage-addr}")
+    private String httpFdfsStorageAddr;
     // 获取文件的类型              MultipartFile根据二进制流进行文件类型转换
     public String getFileType(MultipartFile file) {
         if(file == null){
@@ -191,7 +194,53 @@ public class FastDFSUtil {
     public void deleteFile(String filePath){
         fastFileStorageClient.deleteFile(filePath);
     }
-
+    // 在线视频观看,通过分片的方式
+    public void viewVideoOnlineBySkices(HttpServletRequest request,
+                                        HttpServletResponse response, String url) throws Exception {
+        FileInfo fileInfo = fastFileStorageClient.queryFileInfo(DEFAULT_GROUP, url);
+        // 文件大小
+        long fileSize = fileInfo.getFileSize();
+        // 实际访问的文件路径
+        String fileUrl = httpFdfsStorageAddr+url;
+        // 获取请求头
+        // 获取到所有的相关请求头的信息
+        Enumeration<String> headerNames = request.getHeaderNames();
+        Map<String, Object> map = new HashMap<>();
+        // hasMoreElements 判断当前枚举类型里还有没有更多的数据
+        while (headerNames.hasMoreElements()){
+            String header = headerNames.nextElement();
+            map.put(header, request.getHeader(header));
+        }
+        // 前端穿过来的的信息，获取信息 range   文件分片的大小范围
+        String rangeStr = request.getHeader("Range");
+        String[] range;
+        // 判断 Range是否为空
+        if(StringUtil.isNullOrEmpty(rangeStr)){
+            // 赋值   开始位置是从0开始
+            rangeStr = "bytes=0-"+(fileSize-1);
+        }
+        range = rangeStr.split("bytes=|-");
+        long begin = 0;
+        // range >= 2  说明只有起始位置没有结束位置
+        if(range.length >= 2){
+            begin = Long.parseLong(range[1]);
+        }
+        // 若果长度终止位置
+        long end = fileSize-1;
+        if(range.length >= 3){
+            end = Long.parseLong(range[2]);
+        }
+        // 实际分片长度
+        long len = (end - begin) + 1;
+        // 实际响应头
+        String contentRange = "bytes"+begin+"-"+end+"/"+fileSize;
+        response.setHeader("Content-Range", contentRange);
+        response.setHeader("Accept-Ranges", "bytes");
+        response.setHeader("Content-Type", "video/mp4");
+        response.setContentLength((int)len);
+        response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+        HttpUtil.get(url, map, response);
+    }
 
 
     // 下载（通过nginx，https协议获取文件。可以通过http连接来获取到文件）

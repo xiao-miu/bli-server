@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bilibil.mapper.VideoMapper">
+
+
+    <insert id="addVideo" parameterType="com.bilibil.entity.Video" useGeneratedKeys="true" keyProperty="id">
+        insert into
+            t_video(
+            id,
+            userId,
+            url,
+            thumbnail,
+            title,
+            `type`,
+            duration,
+            area,
+            description,
+            createTime
+        )values(
+                   #{id},
+                   #{userId},
+                   #{url},
+                   #{thumbnail},
+                   #{title},
+                   #{type},
+                   #{duration},
+                   #{area},
+                   #{description},
+                   #{createTime}
+               )
+    </insert>
+    <!-- 批量添加视频标签-->
+    <insert id="batchAddVideoTags" parameterType="java.util.List" >
+        insert into
+        t_video_tag(
+        videoId,
+        tagId,
+        createTime
+        )values
+#                 批量插入   separator 分隔符
+        <foreach collection="videoTagList" item="videoTag" separator=",">
+            (
+            #{videoTag.videoId},
+            #{videoTag.tagId},
+            #{videoTag.createTime}
+            )
+        </foreach>
+    </insert>
+<!--    // 更新视频投币的数量-->
+    <update id="updateVideoCoin" parameterType="com.bilibil.entity.VideoCoin">
+        update
+            t_video_coin
+        set
+            amount = #{amount},
+            updateTime = #{updateTime}
+        where
+            videoId = #{videoId}
+          and userId = #{userId}
+    </update>
+    <!--    // 满足筛选条件一共有多少条-->
+    <select id="pageCountVideos" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select count(1)
+        from t_video
+        where 1=1
+        <if test="area != null and area != '' ">
+            and area = #{area}
+        </if>
+    </select>
+
+    <select id="pageListVoides" resultType="com.bilibil.entity.Video" parameterType="java.util.List">
+        select *
+        from t_video
+        where 1=1
+        <if test="area != null and area != ''">
+            and area = #{area}
+        </if>
+        order by id desc
+        limit #{start},#{limit}
+        </select>
+
+    <select id="getVideoById" parameterType="java.lang.Long" resultType="com.bilibil.entity.Video">
+        select
+            *
+        from
+            t_video
+        where
+            id = #{id}
+    </select>
+
+
+    <!--获取视频条数-->
+    <select id="getVideoLikes" parameterType="java.lang.Long" resultType="java.lang.Long">
+        select
+            count(1)
+        from
+            t_video_like
+        where
+            videoId = #{videoId}
+    </select>
+
+    <delete id="deleteVideoLike">
+        delete from
+            t_video_like
+        where
+            videoId = #{videoId}
+          and userId = #{userId}
+    </delete>
+<!--    // 删除原有的视频收藏-->
+    <delete id="deleteVideoCollection">
+        delete from t_video_collection
+        where
+              videoId = #{videoId}
+            and userId = #{userId}
+    </delete>
+
+    <select id="getVideoLikeByVideoIdAndUserId" resultType="com.bilibil.entity.VideoLike">
+        select
+            *
+        from
+            t_video_like
+        where
+            videoId = #{videoId}
+          and userId = #{userId}
+    </select>
+
+    <select id="getVideoCollections" resultType="java.lang.Long" parameterType="java.lang.Long">
+        select count(1) from
+        t_video_collection
+        where videoId = #{videoId}
+    </select>
+
+    <select id="getVideoCollectionByVideoIdAndUserId" parameterType="java.lang.Long" resultType="com.bilibil.entity.VideoCollection">
+        select
+            *
+        from
+            t_video_collection
+        where
+            videoId = #{videoId}
+          and userId = #{userId}
+    </select>
+<!--    // 查询当前登录的用户对视频已经投了多少硬币了-->
+    <select id="getVideoCoinByVideoIdAndUserId"
+            resultType="com.bilibil.entity.VideoCoin" parameterType="java.lang.Long">
+            select *
+            from t_video_coin
+                 where
+                    videoId = #{videoId}
+                and userId = #{userId}
+    </select>
+    <select id="getVideoCoinsAmount" resultType="java.lang.Long" parameterType="java.lang.Long">
+        select sum(amount)
+        from t_video_coin
+        where  userId = #{userId}
+    </select>
+    <!--    // 查询当前登录的用户对视频已经投了多少硬币了-->
+
+
+    <insert id="addVideoLike" parameterType="com.bilibil.entity.VideoLike">
+        insert into
+            t_video_like(
+            userId,
+            videoId,
+            createTime
+        )values(
+                   #{userId},
+                   #{videoId},
+                   #{createTime}
+               )
+    </insert>
+<!--    // 添加视频收藏-->
+    <insert id="addVideoCollection" parameterType="com.bilibil.entity.VideoCollection">
+        insert into
+            t_video_collection(
+                userId,videoId,groupId,createTime
+        )values (
+                 #{userId},#{videoId},#{createTime},#{groupId}
+                        )
+    </insert>
+    <insert id="addVideoCoin" parameterType="com.bilibil.entity.VideoCoin">
+        insert into t_video_coin(
+            userId,videoId,amount,createTime
+        )values (
+                            #{userId},#{videoId},#{amount},#{createTime}
+                        )
+
+    </insert>
+</mapper>
