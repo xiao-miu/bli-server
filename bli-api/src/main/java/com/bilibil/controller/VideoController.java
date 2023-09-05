@@ -3,8 +3,10 @@ package com.bilibil.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bilibil.entity.*;
+import com.bilibil.service.ElasticsearchService;
 import com.bilibil.service.VideoService;
 import com.bilibil.support.UserSupport;
+import org.apache.mahout.cf.taste.common.TasteException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,12 +25,16 @@ public class VideoController {
     private VideoService videoService;
     @Autowired
     private UserSupport userSupport;
+    @Autowired
+    private ElasticsearchService elasticsearchService;
     // 用户上传添加视频
     @PostMapping("/videos")
     public JsonResponse<String> addVideos(@RequestBody Video video){
         Long userId = userSupport.getCurrentUserId();
         video.setUserId(userId);
         videoService.addVideo(video);
+        // 添加到ES中
+        elasticsearchService.addVideo(video);
         return JsonResponse.success();
     }
     //    /videos?size=4&number=1&area=1
@@ -139,5 +145,72 @@ public class VideoController {
         }catch (Exception ignored){}
         Map<String, Object> result = videoService.getVideoCoins(videoId, userId);
         return new JsonResponse<>(result);
+    }
+
+
+    /**
+     * 添加视频观看记录
+     */
+    @PostMapping("/video-views")
+    public JsonResponse<String> addVideoView(@RequestBody VideoView videoView,
+                                             HttpServletRequest request){
+        Long userId;
+        try{
+            userId = userSupport.getCurrentUserId();
+            videoView.setUserId(userId);
+            // 判断是否是否有游客模式
+            // 添加视频观看记录
+            videoService.addVideoView(videoView, request);
+        }catch (Exception e){
+            // 游客模式
+            videoService.addVideoView(videoView, request);
+        }
+        return JsonResponse.success();
+    }
+
+    /**
+     * 查询视频播放量
+     */
+    @GetMapping("/video-view-counts")
+    public JsonResponse<Integer> getVideoViewCounts(@RequestParam Long videoId){
+        Integer count = videoService.getVideoViewCounts(videoId);
+        return new JsonResponse<>(count);
+    }
+
+    /**
+     * 视频内容推荐
+     */
+    @GetMapping("/recommendations")
+    public JsonResponse<List<Video>> recommend() throws TasteException {
+        Long userId = userSupport.getCurrentUserId();
+        List<Video> list = videoService.recommend(userId);
+        return new JsonResponse<>(list);
+    }
+
+    /**
+     * 视频帧截取生成黑白剪影
+     */
+    @GetMapping("/video-frames")
+    public JsonResponse<List<VideoBinaryPicture>> captureVideoFrame(@RequestParam Long videoId,
+                                                                    @RequestParam String fileMd5) throws Exception {
+        List<VideoBinaryPicture> list = null;
+//       list = videoService.convertVideoToImage(videoId, fileMd5);
+        return new JsonResponse<>(list);
+    }
+
+    /**
+     * 查询视频黑白剪影
+     */
+    @GetMapping("/video-binary-images")
+    public JsonResponse<List<VideoBinaryPicture>> getVideoBinaryImages(@RequestParam Long videoId,
+                                                                       Long videoTimestamp,
+                                                                       String frameNo) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("videoId", videoId);
+        params.put("videoTimestamp", videoTimestamp);
+        params.put("frameNo", frameNo);
+        List<VideoBinaryPicture> list = null;
+//        list = videoService.getVideoBinaryImages(params);
+        return new JsonResponse<>(list);
     }
 }

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.TimeUnit;
 
 public class RocketMQUtil {
+
     // 同步发送消息
     public static void syncSendMsg(DefaultMQProducer producer, Message msg) throws Exception{
         SendResult result = producer.send(msg);
@@ -27,7 +28,9 @@ public class RocketMQUtil {
                 // 发送成功提醒
                 @Override
                 public void onSuccess(SendResult sendResult) {
+                    Logger logger = LoggerFactory.getLogger(RocketMQUtil.class);
                     countDownLatch.countDown();
+                    logger.info("异步发送消息成功，消息id：" + sendResult.getMsgId());
                     System.out.println(sendResult.getMsgId());
                 }
                 // 失败回调

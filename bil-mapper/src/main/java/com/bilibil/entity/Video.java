@@ -8,7 +8,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import java.util.Date;
 import java.util.List;
 
-@Document(indexName = "videos")
+@Document(indexName = "videos")   //ES   索引名称
 public class Video {
 
     @Id

@@ -20,11 +20,11 @@ public class VideoComment {
     private Date createTime;
 
     private Date updateTime;
-
+    // 二级列表
     private List<VideoComment> childList;
-
+    // 关联的用户信息，是哪个用户的评论
     private UserInfo userInfo;
-
+    // 二级评论具体回复的是那个用户
     private UserInfo replyUserInfo;
 
     public Long getId() {

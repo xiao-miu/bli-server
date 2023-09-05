@@ -1,16 +1,21 @@
 package com.bilibil.entity;
 
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
 import java.util.Date;
 
 /**
  * Date:  2023/8/20
  */
+@Document(indexName = "user-infos")
 public class UserInfo {
 
     private Long id;
 
     private Long userId;
-
+    @Field(type = FieldType.Text)
     private String nick;
 
     private String avatar;
@@ -20,10 +25,10 @@ public class UserInfo {
     private String gender;
 
     private String birth;
-
+    @Field(type = FieldType.Date)
     private Date createTime;
 
-//    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date)
     private Date updateTime;
     // true 是关注，false 是没有关注
     private Boolean followed;

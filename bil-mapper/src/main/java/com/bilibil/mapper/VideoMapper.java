@@ -49,4 +49,14 @@ public interface VideoMapper {
     void updateVideoCoin(VideoCoin videoCoin);
     // 查询视频的币
     Long getVideoCoinsAmount(Long videoId);
+    // 获取当天的观看记录
+    VideoView getVideoView(Map<String, Object> params);
+    // 如果没有观看记录进行添加
+    void addVideoView(VideoView videoView);
+
+    Integer getVideoViewCounts(Long videoId);
+    // 获取用户所有的偏好
+    List<UserPreference> getAllUserPreference();
+    // 拿到给用户推荐视频的id进行批量查询
+    List<Video> batchGetVideosByIds(List<Long> itemIds);
 }

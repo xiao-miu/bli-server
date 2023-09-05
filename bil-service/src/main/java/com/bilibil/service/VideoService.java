@@ -1,13 +1,12 @@
 package com.bilibil.service;
 
-import com.bilibil.entity.PageResult;
-import com.bilibil.entity.Video;
-import com.bilibil.entity.VideoCoin;
-import com.bilibil.entity.VideoCollection;
+import com.bilibil.entity.*;
 import org.apache.ibatis.annotations.Param;
+import org.apache.mahout.cf.taste.common.TasteException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,5 +38,11 @@ public interface VideoService {
     void addVideoCoins(VideoCoin videoCoin, Long userId);
     // 区分用户有没有登录
     Map<String, Object> getVideoCoins(Long videoId, Long userId);
+    // 添加视频观看记录
+    void addVideoView(VideoView videoView, HttpServletRequest request);
+    // 查询视频播放量
+    Integer getVideoViewCounts(Long videoId);
+    // 视频内容推荐
+    List<Video> recommend(Long userId) throws TasteException;
 }
 

@@ -152,6 +152,62 @@
         from t_video_coin
         where  userId = #{userId}
     </select>
+
+<!--    // 获取当天的观看记录-->
+    <select id="getVideoView" resultType="com.bilibil.entity.VideoView"  parameterType="java.util.Map">
+        select
+        *
+        from
+        t_video_view
+        where
+        videoId = #{videoId}
+#           防止用户先登录观看，再退出登录观看  clientId 是惟一的
+        <if test="userId == null and clientId != null">
+            and clientId = #{clientId} and userId is null
+        </if>
+        <if test="userId != null">
+            and userId = #{userId}
+        </if>
+        <if test="ip != null and ip != '' ">
+            and ip = #{ip}
+        </if>
+        <if test="today != null and today != '' ">
+            and DATE_FORMAT(createTime,'%Y-%m-%d') = #{today}
+        </if>
+    </select>
+
+    <select id="getVideoViewCounts" resultType="java.lang.Integer" parameterType="java.lang.Long">
+        select COUNT(1)
+        from t_video_view
+        where videoId = #{videoId}
+    </select>
+    <select id="getAllUserPreference" resultType="com.bilibil.entity.UserPreference">
+        select
+            userId,
+            videoId,
+            sum(case operationType
+                    when '0' then 6
+                    when '1' then 2
+                    when '2' then 2
+                    else 0 end
+                ) as `value`
+        from
+            t_video_operation
+        group by userId, videoId
+    </select>
+<!--    // 拿到给用户推荐视频的id进行批量查询-->
+    <select id="batchGetVideosByIds" resultType="com.bilibil.entity.Video" parameterType="java.util.List">
+        select
+        *
+        from
+        t_video
+        where
+        id in
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    <!--    DATE_FORMAT(createTime,'%Y-%m-%d')   格式化日期和时间的函数-->
     <!--    // 查询当前登录的用户对视频已经投了多少硬币了-->
 
 
@@ -183,5 +239,12 @@
                             #{userId},#{videoId},#{amount},#{createTime}
                         )
 
+    </insert>
+    <insert id="addVideoView" parameterType="com.bilibil.entity.VideoView">
+        insert into t_video_view(
+            videoId,userId,clientId,ip,createTime
+        )   values (
+                    #{videoId},#{userId},#{clientId},#{ip},#{createTime}
+                           )
     </insert>
 </mapper>
